@@ -1,8 +1,15 @@
 const express = require("express");
 const morgan = require("morgan");
 const bodyParser = require("body-parser");
+const mongoose = require("mongoose");
+
 const productRoutes = require("./api/routes/products");
 const orderRoutes = require("./api/routes/orders");
+
+mongoose.connect(
+  `mongodb+srv://aniruddha:${process.env.MONGO_ATLAS_PASSWORD}@node-rest-shop.abhkp.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`
+);
+
 const app = express();
 app.use(morgan("dev"));
 
