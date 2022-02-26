@@ -6,17 +6,25 @@ const Product = require("../models/product");
 
 router.get("/", (req, res, next) => {
   Product.find()
+    .select("name price _id")
     .all()
     .exec()
     .then((docs) => {
-      console.log(docs);
-      // if (docs.length >= 0) {
-      res.status(200).json(docs);
-      // } else {
-      //   res.status(404).json({
-      //     message: "No entries found",
-      //   });
-      // }
+      const response = {
+        count: docs.length,
+        products: docs.map((doc) => {
+          return {
+            name: doc.name,
+            price: doc.price,
+            _id: doc._id,
+            request: {
+              type: "GET",
+              url: `http://localhost:3000/products/${doc._id}`,
+            },
+          };
+        }),
+      };
+      res.status(200).json(response);
     })
     .catch((err) => {
       console.error(err);
@@ -37,8 +45,13 @@ router.post("/", (req, res, next) => {
     .then((result) => {
       console.log(result);
       res.status(201).json({
-        message: "POST: hello from products!",
-        createdProduct: result,
+        message: "Created product successfully",
+        createdProduct: {
+          name: result.name,
+          price: result.price,
+          _id: result._id,
+          url: `http://localhost:3000/products/${result._id}`,
+        },
       });
     })
     .catch((err) => {
@@ -52,11 +65,19 @@ router.post("/", (req, res, next) => {
 router.get("/:productId", (req, res, next) => {
   const id = req.params.productId;
   Product.findById(id)
+    .select("name price _id")
     .exec()
     .then((doc) => {
       console.log(doc);
       if (doc) {
-        res.status(200).json(doc);
+        res.status(200).json({
+          product: doc,
+          request: {
+            type: "GET",
+            desccription: "Get all products",
+            url: "http://localhost:3000/products/",
+          },
+        });
       } else {
         res.status(404).json({
           message: "Nothing found!",
