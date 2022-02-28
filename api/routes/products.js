@@ -1,12 +1,37 @@
 const express = require("express");
 const router = express.Router();
 const mongoose = require("mongoose");
+const multer = require("multer");
 
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "./uploads");
+  },
+  filename: (req, file, cb) => {
+    cb(null, Math.round(Math.random() * 1e5) + file.originalname);
+  },
+});
+
+const fileFilter = (req, file, cb) => {
+  //reject a file
+  if (file.mimetype === "image/jpeg" || "image/png" || "image/webp") {
+    cb(null, true);
+  } else {
+    cb(new Error("File type not supported!"), false);
+  }
+};
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 1024 * 1024 * 5,
+  },
+  fileFilter: fileFilter,
+});
 const Product = require("../models/product");
 
 router.get("/", (req, res, next) => {
   Product.find()
-    .select("name price _id")
+    .select("name price _id productImg")
     .all()
     .exec()
     .then((docs) => {
@@ -17,6 +42,7 @@ router.get("/", (req, res, next) => {
             name: doc.name,
             price: doc.price,
             _id: doc._id,
+            productImg: doc.productImg,
             request: {
               type: "GET",
               url: `http://localhost:3000/products/${doc._id}`,
@@ -34,11 +60,13 @@ router.get("/", (req, res, next) => {
     });
 });
 
-router.post("/", (req, res, next) => {
+router.post("/", upload.single("productImg"), (req, res, next) => {
+  console.log(req.file);
   const product = new Product({
     _id: new mongoose.Types.ObjectId(),
     name: req.body.name,
     price: req.body.price,
+    productImg: req.file.path,
   });
   product
     .save()
@@ -50,6 +78,7 @@ router.post("/", (req, res, next) => {
           name: result.name,
           price: result.price,
           _id: result._id,
+          productImg: result.productImg,
           url: `http://localhost:3000/products/${result._id}`,
         },
       });

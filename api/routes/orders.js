@@ -7,6 +7,7 @@ const Order = require("../models/order");
 router.get("/", (req, res, next) => {
   Order.find()
     .select("product quantity _id")
+    .populate("product", "name")
     .exec()
     .then((docs) => {
       res.status(200).json({
@@ -18,7 +19,7 @@ router.get("/", (req, res, next) => {
               product: doc.product,
               quantity: doc.quantity,
               type: "GET",
-              url: `http://localhost:3000/products/${doc.product}`,
+              url: `http://localhost:3000/products/${doc.product?._id}`,
             },
           };
         }),

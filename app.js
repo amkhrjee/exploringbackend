@@ -11,10 +11,11 @@ mongoose.connect(
 );
 
 const app = express();
+//middlewares
 app.use(morgan("dev"));
-
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use("/uploads", express.static("uploads"));
 
 //cors error handling
 app.use((req, res, next) => {
